@@ -1,3 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Training - Pathways</title>
+    <style>
+        /* Your existing styles here */
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PATHWAYS REGIONAL EMPLOYMENT SUPPORT SERVICES</h1>
+        <h2>Clock-In/Clock-Out & Feedback Training</h2>
+    </header>
+
+    <!-- Clock-In / Clock-Out Page -->
+    <div id="clockInPage" class="container">
+        <h2>Clock In / Out</h2>
+        <p>Insert your name below:</p>
+        <input type="text" id="nameInput" placeholder="Enter your name">
+        <div>
+            <button onclick="clockIn()">Clock In</button>
+            <button onclick="clockOut()">Clock Out</button>
+        </div>
+        <p id="message"></p>
+        <div id="tableContainer">
+            <h3>Clock-In/Out Reports</h3>
+            <input type="text" id="clockInSearch" placeholder="Search by Name" oninput="searchClockIn()">
+            <table id="reportTable">
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </table>
+        </div>
+        <button class="arrow left" onclick="showRank()">← Rank</button> 
+        <button class="arrow right" onclick="showNotes()">Notes →</button> 
+    </div>
+
+    <!-- Ranking Page -->
+    <div id="rankPage" class="container hidden">
+        <h3>Rankings</h3>
+        <input type="text" id="rankSearch" placeholder="Search by Name" oninput="searchRank()">
+        <table id="rankTable">
+            <tr>
+                <th>Name</th>
+                <th>Correct Clock-Ins</th>
+                <th>Total Clock-Ins</th>
+                <th>Late Clock-Ins</th>
+            </tr>
+        </table>
+        <button class="arrow left" onclick="showClockIn()">← Clock-In/Clock-Out</button>
+    </div>
+
+    <!-- Notes Page -->
+    <div id="notesPage" class="container hidden">
+        <h3>Notes</h3>
+        <input type="text" id="noteNameInput" placeholder="Enter your name">
+        <textarea id="noteInput" placeholder="Write your note here..."></textarea>
+        <p>Rate your day:</p>
+        <input type="number" id="rating" min="1" max="5" placeholder="1-5">
+        <p>Enter your Job Coach's name:</p>
+        <input type="text" id="jobCoachInput" placeholder="Job Coach's name">
+        <button onclick="addNote()">Submit Note</button>
+        <input type="text" id="noteSearch" placeholder="Search by Name" oninput="searchNotes()">
+        <table id="notesTable">
+            <tr>
+                <th>Name</th>
+                <th>Note</th>
+                <th>Rating</th>
+                <th>Job Coach</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+        <button class="arrow left" onclick="showClockIn()">← Clock-In/Clock-Out</button>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Pathways Regional Employment Support Services. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Deletion Alert -->
+    <div id="deleteAlert" class="alert">
+        <p>This action cannot be reversed. You are encouraged to communicate with your assigned Job Coach before proceeding.</p>
+        <button class="confirm" onclick="deleteConfirmed()">Yes, Proceed</button>
+        <button onclick="cancelDelete()">No, Cancel</button>
+    </div>
+
+    <script>
+        // Storage Keys
+        const STORAGE_KEYS = {
+            CLOCK_IN_REPORTS: 'clockInReports',
+            CLOCKED_IN_NAMES: 'clockedInNames',
+            NOTES: 'notes',
+        };
+
+        let clockInReports = [];
+        let clockedInNames = new Set();
+        let notes = [];
+        let deleteIndex = -1;
+        let deleteType = "";
+
+        document.addEventListener('DOMContentLoaded', initializeData);
+
+        // Listen for storage changes in other tabs/windows
+        window.addEventListener('storage', (event) => {
+            if (
+                event.key === STORAGE_KEYS.CLOCK_IN_REPORTS ||
+                event.key === STORAGE_KEYS.CLOCKED_IN_NAMES ||
+                event.key === STORAGE_KEYS.NOTES
+            ) {
+                // If the relevant data changes, reload the data
+                initializeData();
+            }
+        });
+
+        function initializeData() {
+            clockInReports = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLOCK_IN_REPORTS)) || [];
+            clockedInNames = new Set(JSON.parse(localStorage.getItem(STORAGE_KEYS.CLOCKED_IN_NAMES)) || []);
+            notes = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTES)) || [];
+            loadClockInData();
+            loadRankings();
+            loadNotes();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEYS.CLOCK_IN_REPORTS, JSON.stringify(clockInReports));
+            localStorage.setItem(STORAGE_KEYS.CLOCKED_IN_NAMES, JSON.stringify(Array.from(clockedInNames)));
+            localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+        }
+
+        function clockIn() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                document.getElementById('message').textContent = 'Please enter a valid name.';
+                return;
+            }
+            const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            const currentDate = new Date().toLocaleDateString();
+            clockInReports.push({ name, type: 'In', time: currentTime, date: currentDate });
+            clockedInNames.add(name);
+            saveData();
+            loadClockInData();
+            loadRankings();
+
+            document.getElementById('message').textContent = `${name} clocked in successfully at ${currentTime}.`;
+        }
+
+        function clockOut() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                document.getElementById('message').textContent = 'Please enter a valid name.';
+                return;
+            }
+            const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            const currentDate = new Date().toLocaleDateString();
+            clockInReports.push({ name, type: 'Out', time: currentTime, date: currentDate });
+            clockedInNames.delete(name);
+            saveData();
+            loadClockInData();
+            loadRankings();
+
+            document.getElementById('message').textContent = `${name} clocked out successfully at ${currentTime}.`;
+        }
+
+        function loadClockInData() {
+            const table = document.getElementById('reportTable');
+            table.innerHTML = `
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+            clockInReports.forEach((report, index) => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${report.name}</td>
+                    <td>${report.type}</td>
+                    <td>${report.date}</td>
+                    <td>${report.time}</td>
+                    <td><button onclick="eraseReport(${index})">Erase</button></td>
+                `;
+            });
+        }
+
+        function eraseReport(index) {
+            deleteIndex = index;
+            deleteType = 'clockIn';
+            document.getElementById('deleteAlert').style.display = 'block';
+        }
+
+        function deleteConfirmed() {
+            if (deleteType === 'clockIn') {
+                clockInReports.splice(deleteIndex, 1);
+                saveData();
+                loadClockInData();
+                loadRankings();
+            } else if (deleteType === 'note') {
+                notes.splice(deleteIndex, 1);
+                saveData();
+                loadNotes();
+            }
+            document.getElementById('deleteAlert').style.display = 'none';
+        }
+
+        function cancelDelete() {
+            document.getElementById('deleteAlert').style.display = 'none';
+        }
+
+        function loadRankings() {
+            const rankings = {};
+            clockInReports.forEach(report => {
+                if (!rankings[report.name]) {
+                    rankings[report.name] = { correct: 0, total: 0, late: 0 };
+                }
+
+                rankings[report.name].total++;
+
+                const correctTimes = ['8:00 AM', '10:40 AM', '10:55 AM', '12:00 PM', '1:00 PM', '2:00 PM'];
+                if (correctTimes.includes(report.time)) {
+                    rankings[report.name].correct++;
+                } else {
+                    rankings[report.name].late++;
+                }
+            });
+
+            const rankTable = document.getElementById('rankTable');
+            rankTable.innerHTML = `
+                <tr>
+                    <th>Name</th>
+                    <th>Correct Clock-Ins</th>
+                    <th>Total Clock-Ins</th>
+                    <th>Late Clock-Ins</th>
+                </tr>
+            `;
+            for (const name in rankings) {
+                const { correct, total, late } = rankings[name];
+                const row = rankTable.insertRow();
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${correct}</td>
+                    <td>${total}</td>
+                    <td>${late}</td>
+                `;
+            }
+        }
+
+        function loadNotes() {
+            const table = document.getElementById('notesTable');
+            table.innerHTML = `
+                <tr>
+                    <th>Name</th>
+                    <th>Note</th>
+                    <th>Rating</th>
+                    <th>Job Coach</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+            notes.forEach((note, index) => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${note.name}</td>
+                    <td>${note.note}</td>
+                    <td>${note.rating}</td>
+                    <td>${note.jobCoach}</td>
+                    <td>${note.date}</td>
+                    <td><button onclick="eraseNote(${index})">Erase</button></td>
+                `;
+            });
+        }
+
+        function eraseNote(index) {
+            deleteIndex = index;
+            deleteType = 'note';
+            document.getElementById('deleteAlert').style.display = 'block';
+        }
+
+        function addNote() {
+            const noteName = document.getElementById('noteNameInput').value.trim();
+            const noteText = document.getElementById('noteInput').value.trim();
+            const rating = parseInt(document.getElementById('rating').value, 10);
+            const jobCoach = document.getElementById('jobCoachInput').value.trim();
+
+            if (!noteName || !noteText || isNaN(rating) || !jobCoach) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const date = new Date().toLocaleDateString();
+            notes.push({ name: noteName, note: noteText, rating, jobCoach, date });
+            saveData();
+            loadNotes();
+        }
+
+        function searchClockIn() {
+            const query = document.getElementById('clockInSearch').value.toLowerCase();
+            const rows = document.getElementById('reportTable').rows;
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[0].textContent.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        function searchRank() {
+            const query = document.getElementById('rankSearch').value.toLowerCase();
+            const rows = document.getElementById('rankTable').rows;
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[0].textContent.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        function searchNotes() {
+            const query = document.getElementById('noteSearch').value.toLowerCase();
+            const rows = document.getElementById('notesTable').rows;
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[0].textContent.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+
+        function showRank() {
+            document.getElementById('clockInPage').classList.add('hidden');
+            document.getElementById('rankPage').classList.remove('hidden');
+        }
+
+        function showNotes() {
+            document.getElementById('clockInPage').classList.add('hidden');
+            document.getElementById('notesPage').classList.remove('hidden');
+        }
+
+        function showClockIn() {
+            document.getElementById('rankPage').classList.add('hidden');
+            document.getElementById('notesPage').classList.add('hidden');
+            document.getElementById('clockInPage').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
 
 
 
