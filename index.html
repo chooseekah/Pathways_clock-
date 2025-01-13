@@ -5,7 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Work Training - Pathways</title>
     <style>
-        /* Your existing styles here */
+        /* Layout styles preserved */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        header {
+            background-color: #4caf50;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+        }
+        header h2 {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+        h2, h3 {
+            color: #4caf50;
+            margin-bottom: 10px;
+        }
+        input[type="text"], textarea {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea {
+            height: 120px;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .arrow {
+            cursor: pointer;
+            font-size: 20px;
+            position: absolute;
+            top: 10px;
+            background: none;
+            border: none;
+            color: #4caf50;
+            display: flex;
+            align-items: center;
+        }
+        .arrow.left {
+            left: 10px;
+        }
+        .arrow.right {
+            right: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            color: #777;
+        }
+        .alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+        }
+        .alert button {
+            background-color: red;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+        }
+        .alert button.confirm {
+            background-color: green;
+        }
+        .correct {
+            background-color: lightgreen;
+        }
+        .late {
+            background-color: red;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -107,17 +243,38 @@
 
         document.addEventListener('DOMContentLoaded', initializeData);
 
-        // Listen for storage changes in other tabs/windows
-        window.addEventListener('storage', (event) => {
-            if (
-                event.key === STORAGE_KEYS.CLOCK_IN_REPORTS ||
-                event.key === STORAGE_KEYS.CLOCKED_IN_NAMES ||
-                event.key === STORAGE_KEYS.NOTES
-            ) {
-                // If the relevant data changes, reload the data
-                initializeData();
-            }
-        });
+        // Motivational phrases
+        const motivationalPhrases = [
+            "Great job! Keep it up!",
+            "You're doing amazing!",
+            "Every step forward is progress.",
+            "Keep pushing – you're closer than you think!",
+            "Success is built on effort. Keep going!",
+            "You're making a difference!",
+            "Consistency is key – great work!",
+            "You're one step closer to your goal!",
+            "Keep your head up – you're doing great!",
+            "Believe in yourself – you're doing awesome!",
+            "Amazing progress – keep it up!",
+            "The best time to start is now – you’re doing it!",
+            "Great effort, keep striving!",
+            "Your dedication is inspiring!",
+            "You're on the right path – keep going!",
+            "Stay positive – you're doing wonderful!",
+            "You're getting better every day!",
+            "Hard work pays off – keep it up!",
+            "Every effort counts – keep up the great work!",
+            "You’re stronger than you think – keep it going!",
+            "Your effort is appreciated – keep it up!",
+            "Keep up the momentum – you’re doing great!",
+            "You’ve got this – don’t stop now!",
+            "The future looks bright with your effort!",
+            "One more step – you’re doing fantastic!",
+            "Every challenge you overcome makes you stronger!",
+            "Keep grinding, the results are coming!",
+            "You are your best asset – keep going!",
+            "Great things are ahead, keep going!"
+        ];
 
         function initializeData() {
             clockInReports = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLOCK_IN_REPORTS)) || [];
@@ -148,7 +305,9 @@
             loadClockInData();
             loadRankings();
 
-            document.getElementById('message').textContent = `${name} clocked in successfully at ${currentTime}.`;
+            // Display motivational phrase when clocking in
+            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+            document.getElementById('message').textContent = `${name} clocked in successfully at ${currentTime}. ${randomPhrase}`;
         }
 
         function clockOut() {
@@ -165,7 +324,14 @@
             loadClockInData();
             loadRankings();
 
-            document.getElementById('message').textContent = `${name} clocked out successfully at ${currentTime}.`;
+            // Display motivational phrase when clocking out
+            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+            document.getElementById('message').textContent = `${name} clocked out successfully at ${currentTime}. ${randomPhrase}`;
+        }
+
+        function isCorrectTime(time) {
+            const correctTimes = ['8:00 AM', '10:40 AM', '10:55 AM', '12:00 PM', '1:00 PM', '2:00 PM'];
+            return correctTimes.includes(time);
         }
 
         function loadClockInData() {
@@ -181,6 +347,10 @@
             `;
             clockInReports.forEach((report, index) => {
                 const row = table.insertRow();
+                const isCorrect = isCorrectTime(report.time);
+                const className = isCorrect ? 'correct' : 'late';
+                row.className = className;
+
                 row.innerHTML = `
                     <td>${report.name}</td>
                     <td>${report.type}</td>
@@ -224,8 +394,7 @@
 
                 rankings[report.name].total++;
 
-                const correctTimes = ['8:00 AM', '10:40 AM', '10:55 AM', '12:00 PM', '1:00 PM', '2:00 PM'];
-                if (correctTimes.includes(report.time)) {
+                if (isCorrectTime(report.time)) {
                     rankings[report.name].correct++;
                 } else {
                     rankings[report.name].late++;
@@ -278,69 +447,59 @@
             });
         }
 
+        function addNote() {
+            const name = document.getElementById('noteNameInput').value.trim();
+            const note = document.getElementById('noteInput').value.trim();
+            const rating = document.getElementById('rating').value;
+            const jobCoach = document.getElementById('jobCoachInput').value.trim();
+
+            if (!name || !note || !rating || !jobCoach || rating < 1 || rating > 5) {
+                alert('Please fill in all fields and provide a rating between 1 and 5.');
+                return;
+            }
+
+            const date = new Date().toLocaleString();
+            const newNote = { name, note, rating, jobCoach, date };
+
+            notes.push(newNote);
+            saveData();
+            loadNotes();
+        }
+
         function eraseNote(index) {
             deleteIndex = index;
             deleteType = 'note';
             document.getElementById('deleteAlert').style.display = 'block';
         }
 
-        function addNote() {
-            const noteName = document.getElementById('noteNameInput').value.trim();
-            const noteText = document.getElementById('noteInput').value.trim();
-            const rating = parseInt(document.getElementById('rating').value, 10);
-            const jobCoach = document.getElementById('jobCoachInput').value.trim();
-
-            if (!noteName || !noteText || isNaN(rating) || !jobCoach) {
-                alert('Please fill in all fields.');
-                return;
-            }
-
-            const date = new Date().toLocaleDateString();
-            notes.push({ name: noteName, note: noteText, rating, jobCoach, date });
-            saveData();
-            loadNotes();
-        }
-
         function searchClockIn() {
-            const query = document.getElementById('clockInSearch').value.toLowerCase();
-            const rows = document.getElementById('reportTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
+            const searchTerm = document.getElementById('clockInSearch').value.toLowerCase();
+            const rows = document.getElementById('reportTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
                 const name = row.cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function searchRank() {
-            const query = document.getElementById('rankSearch').value.toLowerCase();
-            const rows = document.getElementById('rankTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
+            const searchTerm = document.getElementById('rankSearch').value.toLowerCase();
+            const rows = document.getElementById('rankTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
                 const name = row.cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function searchNotes() {
-            const query = document.getElementById('noteSearch').value.toLowerCase();
-            const rows = document.getElementById('notesTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
+            const searchTerm = document.getElementById('noteSearch').value.toLowerCase();
+            const rows = document.getElementById('notesTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
                 const name = row.cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function showRank() {
@@ -361,6 +520,7 @@
     </script>
 </body>
 </html>
+
 
 
 
