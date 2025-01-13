@@ -142,40 +142,6 @@
             background-color: red;
             color: white;
         }
-
-        /* New Media Query for phone formats */
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 1.5rem; /* Smaller font size for title on small screens */
-            }
-            header h2 {
-                font-size: 1rem; /* Smaller subtitle font size */
-            }
-            .container {
-                width: 95%; /* More space on smaller screens */
-                padding: 15px; /* Adjust padding for better space utilization */
-            }
-            input[type="text"], textarea {
-                width: 100%; /* Make inputs take full width on mobile */
-                padding: 12px; /* Slightly larger padding for inputs */
-                font-size: 1rem; /* Make font size larger for easier input */
-            }
-            button {
-                width: 100%; /* Make buttons full-width on mobile */
-                font-size: 1.2rem; /* Increase font size for better readability */
-                padding: 15px; /* More padding for better touch targets */
-            }
-            table th, table td {
-                font-size: 0.9rem; /* Smaller font size in table for better fit */
-                padding: 8px; /* Smaller padding in table */
-            }
-            .arrow {
-                font-size: 18px; /* Slightly smaller arrows */
-            }
-            footer p {
-                font-size: 0.8rem; /* Smaller footer text */
-            }
-        }
     </style>
 </head>
 <body>
@@ -487,16 +453,17 @@
             const rating = document.getElementById('rating').value;
             const jobCoach = document.getElementById('jobCoachInput').value.trim();
 
-            if (!name || !note || !rating || !jobCoach) {
-                alert('Please fill in all fields');
+            if (!name || !note || !rating || !jobCoach || rating < 1 || rating > 5) {
+                alert('Please fill in all fields and provide a rating between 1 and 5.');
                 return;
             }
 
-            const currentDate = new Date().toLocaleDateString();
-            notes.push({ name, note, rating, jobCoach, date: currentDate });
+            const date = new Date().toLocaleString();
+            const newNote = { name, note, rating, jobCoach, date };
+
+            notes.push(newNote);
             saveData();
             loadNotes();
-            alert('Note submitted!');
         }
 
         function eraseNote(index) {
@@ -506,42 +473,33 @@
         }
 
         function searchClockIn() {
-            const query = document.getElementById('clockInSearch').value.toLowerCase();
-            const rows = document.getElementById('reportTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const name = rows[i].cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
+            const searchTerm = document.getElementById('clockInSearch').value.toLowerCase();
+            const rows = document.getElementById('reportTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function searchRank() {
-            const query = document.getElementById('rankSearch').value.toLowerCase();
-            const rows = document.getElementById('rankTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const name = rows[i].cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
+            const searchTerm = document.getElementById('rankSearch').value.toLowerCase();
+            const rows = document.getElementById('rankTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function searchNotes() {
-            const query = document.getElementById('noteSearch').value.toLowerCase();
-            const rows = document.getElementById('notesTable').rows;
-            for (let i = 1; i < rows.length; i++) {
-                const name = rows[i].cells[0].textContent.toLowerCase();
-                if (name.includes(query)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
+            const searchTerm = document.getElementById('noteSearch').value.toLowerCase();
+            const rows = document.getElementById('notesTable').getElementsByTagName('tr');
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
         }
 
         function showRank() {
@@ -562,3 +520,8 @@
     </script>
 </body>
 </html>
+
+
+
+
+
