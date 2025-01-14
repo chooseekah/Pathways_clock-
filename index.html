@@ -471,6 +471,10 @@
             document.getElementById('deleteAlert').style.display = 'block';
         }
 
+        document.getElementById("deleteConfirmedBtn").addEventListener("click", async () => {
+            await deleteConfirmed();
+        });
+
         async function deleteConfirmed() {
             if (deleteType === 'clockIn') {
                 let removedRecords = clockInReports.splice(deleteIndex, 1);
