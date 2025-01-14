@@ -4,30 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Work Training - Pathways</title>
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyAhe5X0RHrDOOUuhlAop4t0X2jGwM3Pn_8",
-    authDomain: "pathways-clock-training.firebaseapp.com",
-    databaseURL: "https://pathways-clock-training-default-rtdb.firebaseio.com",
-    projectId: "pathways-clock-training",
-    storageBucket: "pathways-clock-training.firebasestorage.app",
-    messagingSenderId: "111563648417",
-    appId: "1:111563648417:web:cb799fc7eaefa786fa2fe0",
-    measurementId: "G-DV5DF0KF5C"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
     <style>
         /* Layout styles preserved */
         body {
@@ -180,13 +156,13 @@
         <p>Insert your name below:</p>
         <input type="text" id="nameInput" placeholder="Enter your name">
         <div>
-            <button onclick="clockIn()">Clock In</button>
-            <button onclick="clockOut()">Clock Out</button>
+            <button id="clockInBtn">Clock In</button>
+            <button id="clockOutBtn">Clock Out</button>
         </div>
         <p id="message"></p>
         <div id="tableContainer">
             <h3>Clock-In/Out Reports</h3>
-            <input type="text" id="clockInSearch" placeholder="Search by Name" oninput="searchClockIn()">
+            <input type="text" id="clockInSearch" placeholder="Search by Name">
             <table id="reportTable">
                 <tr>
                     <th>Name</th>
@@ -197,14 +173,14 @@
                 </tr>
             </table>
         </div>
-        <button class="arrow left" onclick="showRank()">← Rank</button> 
-        <button class="arrow right" onclick="showNotes()">Notes →</button> 
+        <button class="arrow left" id="showRankBtn">← Rank</button> 
+        <button class="arrow right" id="showNotesBtn">Notes →</button> 
     </div>
 
     <!-- Ranking Page -->
     <div id="rankPage" class="container hidden">
         <h3>Rankings</h3>
-        <input type="text" id="rankSearch" placeholder="Search by Name" oninput="searchRank()">
+        <input type="text" id="rankSearch" placeholder="Search by Name">
         <table id="rankTable">
             <tr>
                 <th>Name</th>
@@ -213,7 +189,7 @@
                 <th>Late Clock-Ins</th>
             </tr>
         </table>
-        <button class="arrow left" onclick="showClockIn()">← Clock-In/Clock-Out</button>
+        <button class="arrow left showClockInBtn">← Clock-In/Clock-Out</button>
     </div>
 
     <!-- Notes Page -->
@@ -225,8 +201,8 @@
         <input type="number" id="rating" min="1" max="5" placeholder="1-5">
         <p>Enter your Job Coach's name:</p>
         <input type="text" id="jobCoachInput" placeholder="Job Coach's name">
-        <button onclick="addNote()">Submit Note</button>
-        <input type="text" id="noteSearch" placeholder="Search by Name" oninput="searchNotes()">
+        <button id="addNoteBtn">Submit Note</button>
+        <input type="text" id="noteSearch" placeholder="Search by Name">
         <table id="notesTable">
             <tr>
                 <th>Name</th>
@@ -237,7 +213,7 @@
                 <th>Actions</th>
             </tr>
         </table>
-        <button class="arrow left" onclick="showClockIn()">← Clock-In/Clock-Out</button>
+        <button class="arrow left showClockInBtn">← Clock-In/Clock-Out</button>
     </div>
 
     <footer>
@@ -247,11 +223,37 @@
     <!-- Deletion Alert -->
     <div id="deleteAlert" class="alert">
         <p>This action cannot be reversed. You are encouraged to communicate with your assigned Job Coach before proceeding.</p>
-        <button class="confirm" onclick="deleteConfirmed()">Yes, Proceed</button>
-        <button onclick="cancelDelete()">No, Cancel</button>
+        <button class="confirm" id="deleteConfirmedBtn">Yes, Proceed</button>
+        <button id="cancelDeleteBtn">No, Cancel</button>
     </div>
 
-    <script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, setDoc, getDocs, updateDoc, deleteDoc, doc, getDoc  } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        // "firebase/firestore";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhe5X0RHrDOOUuhlAop4t0X2jGwM3Pn_8",
+            authDomain: "pathways-clock-training.firebaseapp.com",
+            databaseURL: "https://pathways-clock-training-default-rtdb.firebaseio.com",
+            projectId: "pathways-clock-training",
+            storageBucket: "pathways-clock-training.firebasestorage.app",
+            messagingSenderId: "111563648417",
+            appId: "1:111563648417:web:cb799fc7eaefa786fa2fe0",
+            measurementId: "G-DV5DF0KF5C"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        
         // Storage Keys
         const STORAGE_KEYS = {
             CLOCK_IN_REPORTS: 'clockInReports',
@@ -300,22 +302,65 @@
             "Great things are ahead, keep going!"
         ];
 
-        function initializeData() {
-            clockInReports = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLOCK_IN_REPORTS)) || [];
-            clockedInNames = new Set(JSON.parse(localStorage.getItem(STORAGE_KEYS.CLOCKED_IN_NAMES)) || []);
-            notes = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTES)) || [];
+        async function initializeData() {
+            const clockInReportsCol = collection(db, STORAGE_KEYS.CLOCK_IN_REPORTS);
+            const clockInReportsSnapshot = await getDocs(clockInReportsCol);
+            clockInReports = clockInReportsSnapshot.docs.map(doc => {
+                return { id: doc.id, ...doc.data() }
+            });
+            
+            const docRef = doc(db, "FULLLIST", STORAGE_KEYS.CLOCK_IN_REPORTS);
+            const docSnap = await getDoc(docRef);
+            clockedInNames = docSnap.data()?.clockedInNames || [];
+            const notesCol = collection(db, STORAGE_KEYS.CLOCK_IN_REPORTS);
+            const notesSnapshot = await getDocs(notesCol);
+            notes = notesSnapshot.docs.map(doc => {
+                return { id: doc.id, ...doc.data() }
+            });
             loadClockInData();
             loadRankings();
             loadNotes();
         }
-
+        /*
         function saveData() {
             localStorage.setItem(STORAGE_KEYS.CLOCK_IN_REPORTS, JSON.stringify(clockInReports));
             localStorage.setItem(STORAGE_KEYS.CLOCKED_IN_NAMES, JSON.stringify(Array.from(clockedInNames)));
             localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
         }
+        */
 
-        function clockIn() {
+        document.getElementById("clockInBtn").addEventListener("click", async () => {
+            await clockIn();
+        });
+
+        document.getElementById("clockOutBtn").addEventListener("click", async () => {
+            await clockOut();
+        });
+
+        document.getElementById("addNoteBtn").addEventListener("click", async () => {
+            await addNote();
+        });
+
+        document.getElementById("showRankBtn").addEventListener("click", () => {
+            showRank();
+        });
+
+        document.getElementById("showNotesBtn").addEventListener("click", async () => {
+            showNotes();
+        });
+
+        const showClockInBtns = document.querySelectorAll(".showClockInBtn");
+        showClockInBtns.forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                showClockIn();
+            });
+        });
+
+        document.getElementById("cancelDeleteBtn").addEventListener("click", async () => {
+            cancelDelete();
+        });
+
+        async function clockIn() {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) {
                 document.getElementById('message').textContent = 'Please enter a valid name.';
@@ -323,9 +368,19 @@
             }
             const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
             const currentDate = new Date().toLocaleDateString();
-            clockInReports.push({ name, type: 'In', time: currentTime, date: currentDate });
-            clockedInNames.add(name);
-            saveData();
+            var report = { name, type: 'In', time: currentTime, date: currentDate };
+            
+            // Add a new document with a generated id.
+            const docRef = await addDoc(collection(db, STORAGE_KEYS.CLOCK_IN_REPORTS), report);
+            clockInReports.push({ id: docRef.id, ...report }); // Add the document to the clockInReports array with the generated id.docRef);
+            
+            clockedInNames.push(name);
+            await setDoc(doc(db, "FULLLIST", STORAGE_KEYS.CLOCKED_IN_NAMES), {
+                clockedInNames: clockedInNames
+            });
+
+        
+            // saveData();
             loadClockInData();
             loadRankings();
 
@@ -334,7 +389,7 @@
             document.getElementById('message').textContent = `${name} clocked in successfully at ${currentTime}. ${randomPhrase}`;
         }
 
-        function clockOut() {
+        async function clockOut() {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) {
                 document.getElementById('message').textContent = 'Please enter a valid name.';
@@ -342,15 +397,26 @@
             }
             const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
             const currentDate = new Date().toLocaleDateString();
-            clockInReports.push({ name, type: 'Out', time: currentTime, date: currentDate });
-            clockedInNames.delete(name);
-            saveData();
+            
+            var report = { name, type: 'Out', time: currentTime, date: currentDate };
+            
+            const docRef = await addDoc(collection(db, STORAGE_KEYS.CLOCK_IN_REPORTS), report);
+            clockInReports.push({ id: docRef.id, ...report });
+            
+            clockedInNames = clockedInNames.filter(item => item !== name);
+            await setDoc(doc(db, "FULLLIST", STORAGE_KEYS.CLOCKED_IN_NAMES), {
+                clockedInNames: clockedInNames
+            });
+
             loadClockInData();
             loadRankings();
 
             // Display motivational phrase when clocking out
             const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
             document.getElementById('message').textContent = `${name} clocked out successfully at ${currentTime}. ${randomPhrase}`;
+
+            // saveData();
+       
         }
 
         function isCorrectTime(time) {
@@ -380,8 +446,22 @@
                     <td>${report.type}</td>
                     <td>${report.date}</td>
                     <td>${report.time}</td>
-                    <td><button onclick="eraseReport(${index})">Erase</button></td>
+                    <td><button class="erasereport" data-index="${index}">Erase</button></td>
                 `;
+            });
+
+            // Select all elements with the class 'erasereport'
+            const reportItems = document.querySelectorAll(".erasereport");
+
+            // Add an event listener to each item
+            reportItems.forEach((item) => {
+                item.addEventListener("click", async () => {
+                    // console.log(`Clicked on ${item.textContent}`);
+                    // Perform your desired action here
+                    const index = parseInt(item.getAttribute("data-index"));
+                    
+                    eraseReport(index);
+                });
             });
         }
 
@@ -391,15 +471,24 @@
             document.getElementById('deleteAlert').style.display = 'block';
         }
 
-        function deleteConfirmed() {
+        async function deleteConfirmed() {
             if (deleteType === 'clockIn') {
-                clockInReports.splice(deleteIndex, 1);
-                saveData();
+                let removedRecords = clockInReports.splice(deleteIndex, 1);
+
+                // TODO: delete
+                for (const record of removedRecords) {
+                    await deleteDoc(doc(db, STORAGE_KEYS.CLOCK_IN_REPORTS, record.id));
+                }
+                // saveData();
                 loadClockInData();
                 loadRankings();
             } else if (deleteType === 'note') {
-                notes.splice(deleteIndex, 1);
-                saveData();
+                // TODO: firestore delete
+                let removedRecords = notes.splice(deleteIndex, 1);
+                for (const record of removedRecords) {
+                    await deleteDoc(doc(db, STORAGE_KEYS.NOTES, record.id));
+                }
+                // saveData();
                 loadNotes();
             }
             document.getElementById('deleteAlert').style.display = 'none';
@@ -466,12 +555,27 @@
                     <td>${note.rating}</td>
                     <td>${note.jobCoach}</td>
                     <td>${note.date}</td>
-                    <td><button onclick="eraseNote(${index})">Erase</button></td>
+                    <td><button class="erasenote" data-index="${index}">Erase</button></td>
                 `;
             });
+
+            // Select all elements with the class 'erasereport'
+            const reportItems = document.querySelectorAll(".erasenote");
+
+            // Add an event listener to each item
+            reportItems.forEach((item) => {
+                item.addEventListener("click", async () => {
+                    // console.log(`Clicked on ${item.textContent}`);
+                    // Perform your desired action here
+                    const index = parseInt(item.getAttribute("data-index"));
+                    
+                    eraseNote(index);
+                });
+            });
+
         }
 
-        function addNote() {
+        async function addNote() {
             const name = document.getElementById('noteNameInput').value.trim();
             const note = document.getElementById('noteInput').value.trim();
             const rating = document.getElementById('rating').value;
@@ -485,9 +589,10 @@
             const date = new Date().toLocaleString();
             const newNote = { name, note, rating, jobCoach, date };
 
-            notes.push(newNote);
-            saveData();
-            loadNotes();
+            const docRef = await addDoc(collection(db, STORAGE_KEYS.NOTES), newNote);
+            console.log("Document written with ID: ", docRef.id);
+            notes.push({ id: docRef.id, ...newNote });
+            // saveData();
         }
 
         function eraseNote(index) {
@@ -495,6 +600,10 @@
             deleteType = 'note';
             document.getElementById('deleteAlert').style.display = 'block';
         }
+
+        document.getElementById("clockInSearch").addEventListener("input", async (event) => {
+            searchClockIn();
+        });
 
         function searchClockIn() {
             const searchTerm = document.getElementById('clockInSearch').value.toLowerCase();
@@ -506,6 +615,10 @@
             });
         }
 
+        document.getElementById("rankSearch").addEventListener("input", async (event) => {
+            searchRank();
+        });
+
         function searchRank() {
             const searchTerm = document.getElementById('rankSearch').value.toLowerCase();
             const rows = document.getElementById('rankTable').getElementsByTagName('tr');
@@ -515,6 +628,10 @@
                 row.style.display = name.includes(searchTerm) ? '' : 'none';
             });
         }
+
+        document.getElementById("noteSearch").addEventListener("input", async (event) => {
+            searchNotes();
+        });
 
         function searchNotes() {
             const searchTerm = document.getElementById('noteSearch').value.toLowerCase();
