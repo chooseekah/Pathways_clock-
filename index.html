@@ -337,8 +337,9 @@
             await clockOut();
         });
 
-        document.getElementById("addNoteBtn").addEventListener("click", async () => {
-            await addNote();
+        document.getElementById("addNoteBtn").addEventListener("click", async (event) => {
+              event.preventDefault();  // Prevent form submission or page reload.
+             await addNote();
         });
 
         document.getElementById("showRankBtn").addEventListener("click", () => {
@@ -578,26 +579,35 @@
             });
 
         }
-
+        
         async function addNote() {
-            const name = document.getElementById('noteNameInput').value.trim();
-            const note = document.getElementById('noteInput').value.trim();
-            const rating = document.getElementById('rating').value;
-            const jobCoach = document.getElementById('jobCoachInput').value.trim();
+    console.log("Submit Note button clicked");  // Logs when the button is clicked
 
-            if (!name || !note || !rating || !jobCoach || rating < 1 || rating > 5) {
-                alert('Please fill in all fields and provide a rating between 1 and 5.');
-                return;
-            }
+    const name = document.getElementById('noteNameInput').value.trim();
+    const note = document.getElementById('noteInput').value.trim();
+    const rating = document.getElementById('rating').value;
+    const jobCoach = document.getElementById('jobCoachInput').value.trim();
 
-            const date = new Date().toLocaleString();
-            const newNote = { name, note, rating, jobCoach, date };
+    if (!name || !note || !rating || !jobCoach || rating < 1 || rating > 5) {
+        alert('Please fill in all fields and provide a rating between 1 and 5.');
+        return;
+    }
 
-            const docRef = await addDoc(collection(db, STORAGE_KEYS.NOTES), newNote);
-            console.log("Document written with ID: ", docRef.id);
-            notes.push({ id: docRef.id, ...newNote });
+    const date = new Date().toLocaleString();
+    const newNote = { name, note, rating, jobCoach, date };
+
+    try {
+        const docRef = await addDoc(collection(db, STORAGE_KEYS.NOTES), newNote);
+        console.log("Document written with ID: ", docRef.id);
+        notes.push({ id: docRef.id, ...newNote });
+        loadNotes();  // Load the updated notes list
+    } catch (error) {
+        console.error("Error adding document: ", error);
+    }
+}
+
             // saveData();
-        }
+        
 
         function eraseNote(index) {
             deleteIndex = index;
@@ -665,10 +675,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
