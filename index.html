@@ -313,11 +313,14 @@
             const docRef = doc(db, "FULLLIST", STORAGE_KEYS.CLOCK_IN_REPORTS);
             const docSnap = await getDoc(docRef);
             clockedInNames = docSnap.data()?.clockedInNames || [];
-            const notesCol = collection(db, STORAGE_KEYS.CLOCK_IN_REPORTS);
-            const notesSnapshot = await getDocs(notesCol);
-            notes = notesSnapshot.docs.map(doc => {
-                return { id: doc.id, ...doc.data() }
-            });
+           const notesCol = collection(db, STORAGE_KEYS.NOTES);
+onSnapshot(notesCol, (snapshot) => {
+    notes = snapshot.docs.map(doc => {
+        return { id: doc.id, ...doc.data() }
+    });
+    loadNotes(); // Re-render notes table whenever data changes
+});
+
             loadClockInData();
             loadRankings();
             loadNotes();
